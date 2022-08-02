@@ -17,8 +17,7 @@ class Syft:
     def _enumerate_section(self, section):
         with open(self.report_path) as json_file:
             data = json.load(json_file)
-            for entry in data[section]:
-                yield entry
+            yield from data[section]
 
     def packages(self):
         packages = set()
@@ -79,28 +78,24 @@ def main(baseline_report, new_report):
 
     same_metadata = report2_metadata_set & report1_metadata_set
     percent_overlap_metadata = 0
-    if len(report1_metadata_set) > 0:
+    if report1_metadata_set:
         percent_overlap_metadata = (
             float(len(same_metadata)) / float(len(report1_metadata_set))
         ) * 100.0
 
     if extra_packages:
-        rows = []
-        print(colors.bold + "Extra packages:", colors.reset)
-        for package in sorted(list(extra_packages)):
-            rows.append([INDENT, repr(package)])
+        print(f"{colors.bold}Extra packages:", colors.reset)
+        rows = [[INDENT, repr(package)] for package in sorted(list(extra_packages))]
         print_rows(rows)
         print()
 
     if missing_packages:
-        rows = []
-        print(colors.bold + "Missing packages:", colors.reset)
-        for package in sorted(list(missing_packages)):
-            rows.append([INDENT, repr(package)])
+        print(f"{colors.bold}Missing packages:", colors.reset)
+        rows = [[INDENT, repr(package)] for package in sorted(list(missing_packages))]
         print_rows(rows)
         print()
 
-    print(colors.bold+"Summary:", colors.reset)
+    print(f"{colors.bold}Summary:", colors.reset)
     print("   Baseline Packages: %d" % len(report1_packages))
     print("   New Packages:      %d" % len(report2_packages))
     print(
@@ -113,10 +108,19 @@ def main(baseline_report, new_report):
     )
 
     if len(report1_packages) != len(report2_packages):
-        print(colors.bold + "   Quality Gate: " + colors.fg.red + "FAILED (requires exact name & version match)\n", colors.reset)
+        print(
+            f"{colors.bold}   Quality Gate: {colors.fg.red}"
+            + "FAILED (requires exact name & version match)\n",
+            colors.reset,
+        )
+
         return 1
     else:
-        print(colors.bold + "   Quality Gate: " + colors.fg.green + "pass\n", colors.reset)
+        print(
+            f"{colors.bold}   Quality Gate: {colors.fg.green}" + "pass\n",
+            colors.reset,
+        )
+
     return 0
 
 
